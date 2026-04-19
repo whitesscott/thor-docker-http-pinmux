@@ -1,0 +1,16 @@
+# Build artifacts
+pinmux-app/frontend/dist/
+pinmux-app/frontend/node_modules/
+pinmux-app/backend/node_modules/
+
+# Development / editor
+.git/
+.claude/
+*.md
+*.sh
+*.py
+*.xlsm
+original_xlsm/
+
+# Secrets — never bake into image; mount or inject at runtime instead
+pinmux-app/backend/.env

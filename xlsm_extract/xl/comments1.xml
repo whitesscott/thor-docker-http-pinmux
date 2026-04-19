@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<comments xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="xr" xmlns:xr="http://schemas.microsoft.com/office/spreadsheetml/2014/revision"><authors><author>David Lee</author><author>Richard Shen</author></authors><commentList><comment ref="AS7" authorId="0" shapeId="0" xr:uid="{21687239-1D48-5341-BEEF-95DACF8EC00B}"><text><r><rPr><sz val="9"/><color rgb="FF000000"/><rFont val="Tahoma"/><family val="2"/></rPr><t xml:space="preserve">Select the pin configuration from the pulldown menu
+</t></r></text></comment><comment ref="AT7" authorId="0" shapeId="0" xr:uid="{7BB1C946-2D54-5345-A725-228D7C3E7AAA}"><text><r><rPr><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t>If a pin is used as GPIO, select the pin direction from the following list:
+Input
+Output
+Bidirectional
+Open-Drain
+N/A</t></r></text></comment><comment ref="AU7" authorId="0" shapeId="0" xr:uid="{5FA38AA0-9B17-034C-BBAB-7E0C598FE3A7}"><text><r><rPr><sz val="9"/><color rgb="FF000000"/><rFont val="Tahoma"/><family val="2"/></rPr><t xml:space="preserve">If pin selected to be GPIO, select what state the pin should be in when first configured from the dropdown list. Options are:
+</t></r><r><rPr><sz val="9"/><color rgb="FF000000"/><rFont val="Tahoma"/><family val="2"/></rPr><t xml:space="preserve">- Z Tristate output
+</t></r><r><rPr><sz val="9"/><color rgb="FF000000"/><rFont val="Tahoma"/><family val="2"/></rPr><t xml:space="preserve">- Int PU Tristate output &amp; internal pull-up enabled
+</t></r><r><rPr><sz val="9"/><color rgb="FF000000"/><rFont val="Tahoma"/><family val="2"/></rPr><t xml:space="preserve">- Int PD Tristate output &amp; internal pull-down enabled
+</t></r><r><rPr><sz val="9"/><color rgb="FF000000"/><rFont val="Tahoma"/><family val="2"/></rPr><t xml:space="preserve">- Drive 0 Not tristate, output set low
+</t></r><r><rPr><sz val="9"/><color rgb="FF000000"/><rFont val="Tahoma"/><family val="2"/></rPr><t xml:space="preserve">- Drive 1 Not tristate, output set high
+</t></r><r><rPr><sz val="9"/><color rgb="FF000000"/><rFont val="Tahoma"/><family val="2"/></rPr><t xml:space="preserve">- N/A State not critical (true for inputs, or where initial output state is don't care)
+</t></r></text></comment><comment ref="AV7" authorId="0" shapeId="0" xr:uid="{A29B2288-573F-C140-9625-76A18DD93C25}"><text><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t>Some pins are wake-capable. For the wake capable pins, select Yes or No to determine if the pin will be used as a wake source.</t></r><r><rPr><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t xml:space="preserve">
+</t></r></text></comment><comment ref="AY7" authorId="1" shapeId="0" xr:uid="{87D1E62E-7D69-B646-A5BD-7F3841E26B42}"><text><r><rPr><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t>Disable selects lower power driver, 100 Ohm
+Enable selects normal power driver, 50 Ohm</t></r></text></comment><comment ref="BB7" authorId="1" shapeId="0" xr:uid="{57040A6C-7E9D-3E42-A084-BB53246CD802}"><text><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t>Richard Shen:</t></r><r><rPr><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t xml:space="preserve">
+Low=25mV
+Mid = 50mV
+High = 75mV</t></r></text></comment><comment ref="BF7" authorId="0" shapeId="0" xr:uid="{967ED9AA-AB27-0547-A8BC-94BFC611B092}"><text><r><rPr><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t xml:space="preserve">If an external pull up on the platform, list the value in this column
+</t></r></text></comment><comment ref="BG7" authorId="0" shapeId="0" xr:uid="{0E850399-C979-7441-98DB-1EF03863CF49}"><text><r><rPr><b/><sz val="9"/><color rgb="FF000000"/><rFont val="Tahoma"/><family val="2"/></rPr><t>If an external pull down on the platform, list the value in this column</t></r><r><rPr><sz val="9"/><color rgb="FF000000"/><rFont val="Tahoma"/><family val="2"/></rPr><t xml:space="preserve">
+</t></r></text></comment><comment ref="BH7" authorId="0" shapeId="0" xr:uid="{1F482774-AC88-7842-9B3E-74E587505B2C}"><text><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t>If pin selected to be GPIO, select what state the pin should be in from dropdown list when system is in Deep Sleep mode. Options are:
+- Z Tristate output
+- Int PU Tristate output &amp; internal pull-up enabled
+- Int PD Tristate output &amp; internal pull-down enabled
+- Drive 0 Not tristate, output set low
+- Drive 1 Not tristate, output set high
+- N/A State not critical (true for inputs, or where initial output state is don't care)
+Note the entry in the Deep Sleep "After Wake" column which indicates whether the pin will retain the state selected above, or will revert to the POR state.  If the entry in "After Wake" is hold, the pin will hold its state even after Deep Sleep is exited.  If the entry is reset, the pin will go back to POR state when Deep Sleep is exited before software has control.  If the POR state is different than desired, then do not use a pin that has reset in the "After Wake" column.</t></r><r><rPr><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t xml:space="preserve">
+</t></r></text></comment></commentList></comments>

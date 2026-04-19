@@ -1,0 +1,35 @@
+Dockerfile — multi-stage, single container:                                                                                                         
+                                                                                                                                                      
+  ┌─────────┬────────────────────────────────────────────────────────────────────────────────────────┐                                                
+  │  Stage  │                                      What happens                                      │                                                
+  ├─────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+  │ builder │ Installs Node 20, runs npm ci + vite build for frontend, npm ci --omit=dev for backend │                                                
+  ├─────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+  │ runtime │ Ubuntu Noble + PostgreSQL 16 + Node 20 + nginx + supervisor                            │                                                
+  └─────────┴────────────────────────────────────────────────────────────────────────────────────────┘                                                
+                                                                                                                                                      
+  On first docker run, the entrypoint:                                                                                                                
+  1. Starts a temporary PostgreSQL instance                 
+  2. Checks if the pinmux database exists                                                                                                             
+  3. If not: CREATE DATABASE → loads schema.sql → loads seed.sql (1,062 pins)
+  4. Stops the temporary instance                                                                                                                     
+  5. Hands off to supervisord, which manages all three services permanently                                                                           
+                                                                                                                                                      
+  nginx on port 80 serves the Vite static bundle and proxies /api/* → Node.js on 3001.                                                                
+                                                                                                                                                      
+  .dockerignore — excludes node_modules/, dist/, .env, .git/, .xlsm files, Python scripts.                                                            
+                                                                                                                                                      
+  Build and run:                                                                                                                                      
+  # build                                                   
+  docker build --platform linux/arm64 -t pinmux:latest .
+                                                        
+  # run (ephemeral DB, lost on container stop)                                                                                                        
+  docker run --platform linux/arm64 -p 8080:80 pinmux:latest                                                                                          
+                                                                                                                                                      
+  # run (DB persists across restarts)                                                                                                                 
+  docker run --platform linux/arm64 -p 8080:80 \                                                                                                      
+    -v pinmux-pgdata:/var/lib/postgresql \      
+    whitesscott/pinmux:latest                                                                                                                                     
+
+  Then open http://localhost:8080.                                                                                                                    
+   

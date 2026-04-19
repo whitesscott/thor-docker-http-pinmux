@@ -1,0 +1,20 @@
+claude --resume 62a15b7f-bdaf-4f94-afe7-6da87b079512
+
+# 1. Database
+  createdb pinmux
+  psql -d pinmux -f schema.sql
+  psql -d pinmux -f seed.sql
+
+  # 2. Backend
+  cd pinmux-app/backend
+  cp .env.example .env          # set DATABASE_URL
+  npm install
+  npm run dev                   # → http://localhost:3001
+
+  # 3. Frontend (new terminal)
+  cd pinmux-app/frontend
+  npm install
+  npm run dev                   # → http://localhost:5173
+
+  When you hit issues, just paste the error and I'll have full context from today's session.
+
