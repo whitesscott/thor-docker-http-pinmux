@@ -1,0 +1,21 @@
+# Build artifacts & dependencies
+node_modules/
+dist/
+*.pyc
+__pycache__/
+
+# Secrets (CRITICAL: Do not push these to GitHub)
+.env
+*.pem
+*.key
+
+# Editor & Tooling
+.claude/
+.vscode/
+.idea/
+.DS_Store
+
+# Data/Source files you want to keep local only
+original_xlsm/
+vba/
+*.xlsm

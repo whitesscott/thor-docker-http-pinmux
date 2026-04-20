@@ -11,6 +11,7 @@ pinmux-app/backend/node_modules/
 *.py
 *.xlsm
 original_xlsm/
+vba/
 
 # Secrets — never bake into image; mount or inject at runtime instead
 pinmux-app/backend/.env
