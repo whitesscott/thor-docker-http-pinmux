@@ -13,7 +13,7 @@ export function ConfigToolbar({
       />
 
       <button className="primary" onClick={onExport} disabled={exporting}>
-        {exporting ? 'Generating…' : '⬇ Export DTS'}
+        {exporting ? 'Generating…' : '⬇ Generate DTS'}
       </button>
 
       <button className="danger" onClick={onReset}>Reset</button>

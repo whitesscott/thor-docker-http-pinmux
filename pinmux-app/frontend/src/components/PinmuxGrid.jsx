@@ -86,122 +86,113 @@ function buildColumns(onCellChanged) {
   const ro = { editable: false };
   const ref = { ...ro, cellClass: 'row-reference-only' };
 
+  // Shorthand for editable customer columns.
+  // applicable: optional fn(data) => bool — if false the cell is greyed out (not editable).
+  const cust = (field, headerName, width, valuesOrFn, validKey, isSelect = false, applicable = null) => ({
+    headerName,
+    field,
+    width,
+    wrapHeaderText: true,
+    editable: (p) => !!p.data.is_configurable && (!applicable || applicable(p.data)),
+    ...(valuesOrFn ? selectEditor(valuesOrFn) : {}),
+    cellClass: (p) => {
+      if (!p.data.is_configurable) return 'row-reference-only';
+      if (applicable && !applicable(p.data)) return 'row-reference-only';
+      if (validKey && p.data[`valid_${validKey}`] === false) return 'cell-invalid';
+      return isSelect ? 'cell-editable-select' : 'cell-editable';
+    },
+    onCellValueChanged: onCellChanged,
+  });
+
   return [
-    // ── Identity (pinned left) ─────────────────────────────────────────────
-    { headerName: 'Pin #', field: 'connector_pin', width: 65, pinned: 'left', ...ro },
-    { headerName: 'Signal Name', field: 'signal_name', width: 150, pinned: 'left', ...ro },
-    { headerName: 'Ball', field: 'ball_name', width: 110, pinned: 'left', ...ro },
-    { headerName: 'Verilog Name', field: 'verilog_name', width: 140, pinned: 'left', ...ro },
+    // ── XLSM Row # ─────────────────────────────────────────────────────────
+    { headerName: 'Row', field: 'xlsm_row', width: 55, pinned: 'left', suppressAutoSize: true, ...ro },
 
-    // ── Reference data ─────────────────────────────────────────────────────
-    { headerName: 'DT Pin Name', field: 'dt_pin_name', width: 170, ...ref },
-    { headerName: 'Power Rail', field: 'power_rail', width: 130, ...ref },
-    { headerName: 'Wake', field: 'wake_source', width: 80, ...ref },
-    { headerName: 'Pad Category', field: 'pad_category', width: 80, ...ref },
-    { headerName: 'Pull Strength', field: 'pull_strength', width: 90, ...ref },
-    { headerName: 'POR State', field: 'por_state', width: 80, ...ref },
-
-    // ── Customer configuration (editable) ──────────────────────────────────
+    // ── Thor CVM Connector ─────────────────────────────────────────────────
     {
-      headerName: 'Customer Usage',
-      field: 'customer_usage',
-      width: 200,
-      editable: (p) => !!p.data.is_configurable,
-      ...selectEditor((data) => usageOptions(data)),
-      ...editableField('customer_usage', true),
-      onCellValueChanged: onCellChanged,
-    },
-    {
-      headerName: 'Pin Direction',
-      field: 'pin_direction',
-      width: 130,
-      editable: (p) => !!p.data.is_configurable,
-      ...selectEditor((data) => directionOptions(data, data.customer_usage)),
-      ...editableField('pin_direction', true),
-      onCellValueChanged: onCellChanged,
-    },
-    {
-      headerName: 'Initial State',
-      field: 'initial_state',
-      width: 120,
-      editable: (p) => !!p.data.is_configurable,
-      ...selectEditor(INITIAL_STATE),
-      ...editableField('initial_state', true),
-      onCellValueChanged: onCellChanged,
-    },
-    {
-      headerName: 'Wake Pin',
-      field: 'wake_pin',
-      width: 85,
-      editable: (p) => !!p.data.is_configurable,
-      ...selectEditor(WAKE_OPTS),
-      ...editableField('wake', true),
-      onCellValueChanged: onCellChanged,
-    },
-    {
-      headerName: 'E_IO_OD',
-      field: 'e_io_od',
-      width: 90,
-      editable: (p) => !!p.data.is_configurable,
-      ...selectEditor(ENABLE_DISABLE),
-      ...editableField('rcv_sel', true),
-      onCellValueChanged: onCellChanged,
-    },
-    {
-      headerName: 'DRV_TYPE',
-      field: 'drv_type',
-      width: 90,
-      editable: (p) => !!p.data.is_configurable,
-      ...selectEditor(ENABLE_DISABLE),
-      ...editableField(null, true),
-      onCellValueChanged: onCellChanged,
-    },
-    {
-      headerName: 'Int PU (Ω)',
-      field: 'int_pull_up',
-      width: 90,
-      editable: (p) => !!p.data.is_configurable,
-      ...editableField(null),
-      onCellValueChanged: onCellChanged,
-    },
-    {
-      headerName: 'Int PD (Ω)',
-      field: 'int_pull_down',
-      width: 90,
-      editable: (p) => !!p.data.is_configurable,
-      ...editableField(null),
-      onCellValueChanged: onCellChanged,
-    },
-    {
-      headerName: 'Ext PU (Ω)',
-      field: 'ext_pull_up',
-      width: 90,
-      editable: (p) => !!p.data.is_configurable,
-      ...editableField('resistor'),
-      onCellValueChanged: onCellChanged,
-    },
-    {
-      headerName: 'Ext PD (Ω)',
-      field: 'ext_pull_down',
-      width: 90,
-      editable: (p) => !!p.data.is_configurable,
-      ...editableField(null),
-      onCellValueChanged: onCellChanged,
-    },
-    {
-      headerName: 'Deep Sleep',
-      field: 'deep_sleep_state',
-      width: 110,
-      editable: (p) => !!p.data.is_configurable,
-      ...editableField(null),
-      onCellValueChanged: onCellChanged,
+      headerName: 'Thor CVM Connector',
+      headerClass: 'group-connector',
+      children: [
+        { headerName: 'Pin #', field: 'connector_pin', width: 125, pinned: 'left', suppressAutoSize: true, ...ro },
+        { headerName: 'Signal Name', field: 'signal_name', width: 125, pinned: 'left', suppressAutoSize: true, ...ro },
+      ],
     },
 
-    // ── Info ────────────────────────────────────────────────────────────────
-    { headerName: 'IO Block V', field: 'io_block_voltage', width: 90, ...ref },
-    { headerName: 'Net Name', field: 'net_name', width: 160, ...ref },
-    { headerName: 'Devkit Usage', field: 'devkit_usage', width: 160, ...ref },
-    { headerName: 'Ball Loc.', field: 'ball_location', width: 70, ...ref },
+    // ── Package Ball Name ──────────────────────────────────────────────────
+    {
+      headerName: 'Package Ball Name',
+      headerClass: 'group-ball',
+      children: [
+        { headerName: 'MPIO', field: 'ball_name', width: 120, pinned: 'left', suppressAutoSize: true, ...ro },
+      ],
+    },
+
+    // ── Verilog Ball Name ──────────────────────────────────────────────────
+    { headerName: 'Verilog Ball Name', field: 'verilog_name', width: 115, pinned: 'left', suppressAutoSize: true, ...ro },
+
+    // ── Pad Info ───────────────────────────────────────────────────────────
+    {
+      headerName: 'Pad Info',
+      headerClass: 'group-padinfo',
+      children: [
+        { headerName: 'Wake', field: 'wake_source', width: 80, ...ref },
+        { headerName: 'Pad Category', field: 'pad_category', width: 90, ...ref },
+        { headerName: 'Pull Strength', field: 'pull_strength', width: 90, ...ref },
+        { headerName: 'Power Rail', field: 'power_rail', width: 100, ...ref },
+      ],
+    },
+
+    // ── POR ────────────────────────────────────────────────────────────────
+    {
+      headerName: 'POR',
+      children: [
+        { headerName: 'Pin State', field: 'por_state', width: 80, ...ref },
+      ],
+    },
+
+    // ── Filled in by Customers ─────────────────────────────────────────────
+    {
+      headerName: 'Filled in by Customers',
+      headerClass: 'group-customer',
+      children: [
+        cust('customer_usage', 'Customer Usage', 200, (data) => usageOptions(data), 'customer_usage', true),
+        cust('pin_direction', 'Pin Direction', 130, (data) => directionOptions(data, data.customer_usage), 'pin_direction', true),
+        cust('initial_state', 'Req. Initial State', 120, INITIAL_STATE, 'initial_state', true),
+        cust('wake_pin', 'Wake Pin', 85, WAKE_OPTS, 'wake', true, (data) => !!data.wake_source),
+        {
+          headerName: 'E_IO_OD\nOpen-Drain Select',
+          field: 'e_io_od',
+          width: 95,
+          wrapHeaderText: true,
+          editable: (p) => !!p.data.is_configurable,
+          ...selectEditor(ENABLE_DISABLE),
+          ...editableField('rcv_sel', true),
+          onCellValueChanged: onCellChanged,
+        },
+        cust('drv_type', 'DRV_TYPE\nDisable=Normal\nEnable=High', 95, ENABLE_DISABLE, null, true, (data) => !!data.drv_type_applicable),
+        { headerName: 'Int Pull Up Value (Ω)',   field: 'int_pull_up',   wrapHeaderText: true, width: 110, ...ref },
+        { headerName: 'Int Pull Down Value (Ω)', field: 'int_pull_down', wrapHeaderText: true, width: 110, ...ref },
+        cust('ext_pull_up', 'Ext Pull Up Value (Ω)', 110, null, 'resistor'),
+        cust('ext_pull_down', 'Ext Pull Down Value (Ω)', 110, null, null),
+        cust('deep_sleep_state', 'Req. Deep Sleep State', 120, null, null),
+        { headerName: 'IO Block Voltage', field: 'io_block_voltage', width: 95, ...ref },
+      ],
+    },
+
+    // ── Info ───────────────────────────────────────────────────────────────
+    { headerName: 'DT Pin Name', field: 'dt_pin_name', width: 170, hide: true, ...ref },
+    cust('net_name', 'Customer Usage Description\nor Net Names', 180, null, null),
+    {
+      headerName: 'Devkit Usage', field: 'devkit_usage', width: 160, ...ro,
+      cellClass: (p) => {
+        const v = p.value;
+        if (v === 'UNUSED') return 'devkit-unused';
+        if (v === 'STRAP')  return 'devkit-strap';
+        if (v)              return 'devkit-value';
+        return 'row-reference-only';
+      },
+    },
+    { ...cust('ball_location', 'Ball Loc.', 70, null, null), hide: true },
     { headerName: 'Comment', field: 'comment', width: 200, ...ref },
   ];
 }
@@ -211,7 +202,7 @@ function buildColumns(onCellChanged) {
 // ---------------------------------------------------------------------------
 
 function getRowClass(params) {
-  if (!params.data.is_configurable) return 'row-reference-only';
+  if (!params.data.is_configurable) return 'row-section-divider';
   if (params.data.is_valid === false) return 'row-invalid';
   return 'row-configurable';
 }
@@ -222,7 +213,7 @@ function getRowClass(params) {
 
 export function PinmuxGrid({ rows, configId, onRowsUpdated }) {
   const visibleRows = useMemo(
-    () => rows.filter((r) => !r.is_hidden),
+    () => rows.filter((r) => r.xlsm_row != null),
     [rows]
   );
 
@@ -272,6 +263,7 @@ export function PinmuxGrid({ rows, configId, onRowsUpdated }) {
       sortable: true,
       filter: true,
       suppressMovable: false,
+      autoHeaderHeight: true,
     }),
     []
   );
@@ -286,7 +278,7 @@ export function PinmuxGrid({ rows, configId, onRowsUpdated }) {
         getRowId={(p) => String(p.data.sort_order)}
         getRowClass={getRowClass}
         singleClickEdit={true}
-        rowSelection={{ enableClickSelection: false }}
+        suppressRowClickSelection={true}
         stopEditingWhenCellsLoseFocus={true}
         enableCellTextSelection={true}
         tooltipShowDelay={300}

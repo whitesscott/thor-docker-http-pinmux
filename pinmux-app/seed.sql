@@ -18083,6 +18083,33 @@ INSERT INTO pins (
      NULL, NULL,
      NULL, NULL, NULL);
 
+-- Expand sort_order spacing to make room for section header rows
+UPDATE pins SET sort_order = sort_order * 20;
+
+-- Section/group header rows visible in XLSM (columns C and D)
+-- These appear as non-editable divider rows between pin groups
+INSERT INTO pins (row_number, sort_order, is_configurable, ball_name, verilog_name, io_block_voltage) VALUES
+  (9001,   10, FALSE, 'VDDIO_A',         'SYS',      '1.8V'),
+  (9002,  670, FALSE, 'VDDIO_D',         'PEX_CTL0', '1.8V'),
+  (9003, 1130, FALSE, 'VDDIO_F',         'PEX_CTL1', '1.8V'),
+  (9004, 1370, FALSE, 'VDDIO_G',         'FSI_G1G2', '3.3V'),
+  (9005, 1510, FALSE, 'VDDIO_J',         'FSI_G3G4', '3.3V'),
+  (9006, 2330, FALSE, 'VDDIO_K',         'EDP',      '1.8V'),
+  (9007, 4810, FALSE, 'VDDIO_Q',         'GPIOD/G8', '1.8V'),
+  (9008, 5390, FALSE, 'Dedicated SFIOs', NULL,        NULL),
+  (9009, 5395, FALSE, 'VDDIO_HDMI_DP0',  'HDMI_DP0', '1.2V'),
+  (9010, 5550, FALSE, 'VDDIO_HDMI_DP1',  'HDMI_DP1', '1.2V'),
+  (9011, 5730, FALSE, 'VDDIO_HDMI_DP2',  'HDMI_DP2', '1.2V'),
+  (9012, 5910, FALSE, 'VDDIO_HDMI_DP3',  'HDMI_DP3', '1.2V'),
+  (9013, 6090, FALSE, 'AVDD_CSI',        'CSI',      '1.2V'),
+  (9014, 7070, FALSE, 'AVDD_USB2',       'USB2',     '1.2V'),
+  (9015, 7250, FALSE, 'VDDIO_UPHY0',     'UPHY0',    '1.2V'),
+  (9016, 8070, FALSE, 'VDDIO_UPHY1',     'UPHY1',    '1.2V'),
+  (9017, 1505, FALSE, 'VDDIO_H',         NULL,       '1.8V'),
+  (9018, 2820, FALSE, 'VDDIO_L',         NULL,       '1.8V'),
+  (9019, 4070, FALSE, 'VDDIO_M',         NULL,       '1.8V'),
+  (9020, 4365, FALSE, 'VDDIO_N',         NULL,       '1.8V');
+
 -- ---------------------------------------------------------------------------
 -- pad_voltage_rails  (reference defaults)
 -- ---------------------------------------------------------------------------
@@ -18106,7 +18133,8 @@ INSERT INTO pin_configs (
     customer_usage, pin_direction, initial_state,
     wake_pin, lock, e_io_od, drv_type, e_lpbk,
     e_18v, schmitt, e_hsrx18v,
-    int_pull_up, int_pull_down, ext_pull_up, ext_pull_down, deep_sleep_state
+    int_pull_up, int_pull_down, ext_pull_up, ext_pull_down, deep_sleep_state,
+    net_name, ball_location
 )
 SELECT
     1, p.id,
@@ -18115,14 +18143,402 @@ SELECT
     p.tmpl_wake_pin, p.tmpl_lock, p.tmpl_e_io_od, p.tmpl_drv_type, p.tmpl_e_lpbk,
     p.tmpl_e_18v, p.tmpl_schmitt, p.tmpl_e_hsrx18v,
     p.tmpl_int_pull_up, p.tmpl_int_pull_down,
-    p.tmpl_ext_pull_up, p.tmpl_ext_pull_down, p.tmpl_deep_sleep_state
+    p.tmpl_ext_pull_up, p.tmpl_ext_pull_down, p.tmpl_deep_sleep_state,
+    p.net_name, p.ball_location
 FROM pins p
 WHERE p.is_configurable = TRUE
 ORDER BY p.sort_order;
+
+-- Add pin_configs entries for section divider rows so they appear in the grid
+INSERT INTO pin_configs (config_id, pin_id)
+SELECT 1, p.id FROM pins p WHERE p.row_number >= 9001;
 
 -- pad_voltage_configs for the DevKit template
 INSERT INTO pad_voltage_configs (config_id, rail_id, voltage_setting)
 SELECT 1, pvr.id, pvr.default_setting
 FROM pad_voltage_rails pvr;
+
+-- Mark the 14 pads that support DRV_TYPE (LPDR) as applicable per the XLSM template
+UPDATE pins SET drv_type_applicable = TRUE
+WHERE connector_pin IN ('E61','D62','F60','D60','F55','D56','G56','C57','E56','J57','A56','D55','E55','B56');
+
+-- Mark configurable pins that are hidden in the original XLSM template (94 pins)
+UPDATE pins SET is_hidden = TRUE
+WHERE row_number IN (
+  11, 12, 19, 22, 23, 24, 43, 44, 46, 47, 48, 49, 51, 52, 53, 54, 55, 56,
+  85, 86, 87, 90, 91, 92, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104,
+  105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119,
+  120, 121, 122, 123, 124, 128, 129, 130, 133, 134, 135, 137, 138, 139, 159,
+  160, 183, 222, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235,
+  236, 261, 262, 263, 265, 266, 267, 268, 269, 270, 271, 283, 284, 285
+);
+
+-- Set v1.7 XLSM visible row numbers on pins
+UPDATE pins SET xlsm_row = CASE connector_pin
+  WHEN 'L60' THEN 10
+  WHEN 'B10' THEN 13
+  WHEN 'J60' THEN 14
+  WHEN 'J19' THEN 15
+  WHEN 'F61' THEN 16
+  WHEN 'B55' THEN 17
+  WHEN 'A61' THEN 18
+  WHEN 'L61' THEN 20
+  WHEN 'J50' THEN 21
+  WHEN 'J61' THEN 25
+  WHEN 'K61' THEN 26
+  WHEN 'D61' THEN 27
+  WHEN 'E60' THEN 28
+  WHEN 'K62' THEN 29
+  WHEN 'H62' THEN 30
+  WHEN 'K60' THEN 31
+  WHEN 'E61' THEN 32
+  WHEN 'D62' THEN 33
+  WHEN 'F60' THEN 34
+  WHEN 'D60' THEN 35
+  WHEN 'B62' THEN 36
+  WHEN 'C61' THEN 37
+  WHEN 'E59' THEN 38
+  WHEN 'A39' THEN 39
+  WHEN 'A62' THEN 40
+  WHEN 'F59' THEN 41
+  WHEN 'L10' THEN 42
+  WHEN 'B37' THEN 58
+  WHEN 'B36' THEN 59
+  WHEN 'E11' THEN 60
+  WHEN 'D10' THEN 61
+  WHEN 'G8' THEN 62
+  WHEN 'J9' THEN 63
+  WHEN 'F54' THEN 64
+  WHEN 'G55' THEN 65
+  WHEN 'E7' THEN 66
+  WHEN 'E6' THEN 67
+  WHEN 'A8' THEN 68
+  WHEN 'C8' THEN 70
+  WHEN 'H10' THEN 71
+  WHEN 'L19' THEN 72
+  WHEN 'L18' THEN 73
+  WHEN 'K49' THEN 74
+  WHEN 'H51' THEN 75
+  WHEN 'K51' THEN 76
+  WHEN 'K52' THEN 77
+  WHEN 'C54' THEN 78
+  WHEN 'K56' THEN 79
+  WHEN 'J51' THEN 80
+  WHEN 'D54' THEN 81
+  WHEN 'G38' THEN 83
+  WHEN 'G39' THEN 84
+  WHEN 'H37' THEN 88
+  WHEN 'H36' THEN 89
+  WHEN 'D59' THEN 126
+  WHEN 'F58' THEN 127
+  WHEN 'H61' THEN 131
+  WHEN 'B61' THEN 132
+  WHEN 'K50' THEN 140
+  WHEN 'C18' THEN 141
+  WHEN 'A19' THEN 142
+  WHEN 'C19' THEN 143
+  WHEN 'H52' THEN 144
+  WHEN 'F56' THEN 145
+  WHEN 'F52' THEN 146
+  WHEN 'F51' THEN 147
+  WHEN 'A53' THEN 148
+  WHEN 'C53' THEN 149
+  WHEN 'G53' THEN 150
+  WHEN 'G54' THEN 151
+  WHEN 'D16' THEN 152
+  WHEN 'D17' THEN 153
+  WHEN 'E19' THEN 154
+  WHEN 'E18' THEN 155
+  WHEN 'F20' THEN 156
+  WHEN 'F21' THEN 157
+  WHEN 'C58' THEN 161
+  WHEN 'C56' THEN 162
+  WHEN 'G58' THEN 163
+  WHEN 'A57' THEN 164
+  WHEN 'F55' THEN 165
+  WHEN 'D56' THEN 166
+  WHEN 'G56' THEN 167
+  WHEN 'C57' THEN 168
+  WHEN 'E56' THEN 169
+  WHEN 'J58' THEN 170
+  WHEN 'H58' THEN 171
+  WHEN 'K58' THEN 172
+  WHEN 'H57' THEN 173
+  WHEN 'J57' THEN 174
+  WHEN 'A56' THEN 175
+  WHEN 'D55' THEN 176
+  WHEN 'E55' THEN 177
+  WHEN 'B56' THEN 178
+  WHEN 'J54' THEN 179
+  WHEN 'H53' THEN 180
+  WHEN 'F53' THEN 181
+  WHEN 'E53' THEN 182
+  WHEN 'C38' THEN 184
+  WHEN 'E54' THEN 185
+  WHEN 'B54' THEN 186
+  WHEN 'C39' THEN 187
+  WHEN 'H55' THEN 188
+  WHEN 'L57' THEN 189
+  WHEN 'H60' THEN 190
+  WHEN 'K57' THEN 191
+  WHEN 'A18' THEN 192
+  WHEN 'K53' THEN 193
+  WHEN 'K54' THEN 194
+  WHEN 'L51' THEN 195
+  WHEN 'H54' THEN 196
+  WHEN 'A55' THEN 197
+  WHEN 'L56' THEN 198
+  WHEN 'B58' THEN 199
+  WHEN 'A59' THEN 200
+  WHEN 'B59' THEN 201
+  WHEN 'A58' THEN 202
+  WHEN 'C59' THEN 203
+  WHEN 'K59' THEN 204
+  WHEN 'J59' THEN 205
+  WHEN 'C60' THEN 206
+  WHEN 'F10' THEN 207
+  WHEN 'F9' THEN 208
+  WHEN 'G7' THEN 209
+  WHEN 'L15' THEN 210
+  WHEN 'A7' THEN 211
+  WHEN 'C5' THEN 212
+  WHEN 'H9' THEN 213
+  WHEN 'E10' THEN 214
+  WHEN 'L14' THEN 215
+  WHEN 'C7' THEN 216
+  WHEN 'H8' THEN 217
+  WHEN 'D8' THEN 218
+  WHEN 'E27' THEN 219
+  WHEN 'E26' THEN 220
+  WHEN 'B8' THEN 221
+  WHEN 'K6' THEN 237
+  WHEN 'L48' THEN 239
+  WHEN 'J6' THEN 240
+  WHEN 'L11' THEN 241
+  WHEN 'J4' THEN 242
+  WHEN 'J5' THEN 243
+  WHEN 'H5' THEN 244
+  WHEN 'L50' THEN 245
+  WHEN 'E5' THEN 246
+  WHEN 'L9' THEN 247
+  WHEN 'L49' THEN 248
+  WHEN 'L5' THEN 249
+  WHEN 'H6' THEN 250
+  WHEN 'L4' THEN 251
+  WHEN 'L6' THEN 252
+  WHEN 'G4' THEN 253
+  WHEN 'F5' THEN 254
+  WHEN 'F6' THEN 255
+  WHEN 'E4' THEN 256
+  WHEN 'K5' THEN 257
+  WHEN 'L8' THEN 258
+  WHEN 'J52' THEN 259
+  WHEN 'J53' THEN 260
+  WHEN 'A47' THEN 273
+  WHEN 'A48' THEN 274
+  WHEN 'H16' THEN 275
+  WHEN 'H17' THEN 276
+  WHEN 'G19' THEN 277
+  WHEN 'G18' THEN 278
+  WHEN 'J18' THEN 279
+  WHEN 'G5' THEN 280
+  WHEN 'C55' THEN 281
+  WHEN 'D5' THEN 282
+  WHEN 'A38' THEN 286
+  WHEN 'J55' THEN 287
+  WHEN 'J7' THEN 288
+  WHEN 'G6' THEN 289
+  WHEN 'C4' THEN 290
+  WHEN 'A54' THEN 291
+  WHEN 'D51' THEN 294
+  WHEN 'D52' THEN 295
+  WHEN 'B51' THEN 296
+  WHEN 'B52' THEN 297
+  WHEN 'A51' THEN 298
+  WHEN 'A50' THEN 299
+  WHEN 'C51' THEN 300
+  WHEN 'C50' THEN 301
+  WHEN 'H49' THEN 304
+  WHEN 'H48' THEN 305
+  WHEN 'G51' THEN 306
+  WHEN 'G50' THEN 307
+  WHEN 'J47' THEN 308
+  WHEN 'J48' THEN 309
+  WHEN 'K46' THEN 310
+  WHEN 'K47' THEN 311
+  WHEN 'A15' THEN 314
+  WHEN 'A14' THEN 315
+  WHEN 'J14' THEN 316
+  WHEN 'J15' THEN 317
+  WHEN 'C15' THEN 318
+  WHEN 'C14' THEN 319
+  WHEN 'G15' THEN 320
+  WHEN 'G14' THEN 321
+  WHEN 'D33' THEN 324
+  WHEN 'D32' THEN 325
+  WHEN 'J35' THEN 326
+  WHEN 'J34' THEN 327
+  WHEN 'A34' THEN 328
+  WHEN 'A35' THEN 329
+  WHEN 'H32' THEN 330
+  WHEN 'H33' THEN 331
+  WHEN 'E42' THEN 334
+  WHEN 'E41' THEN 335
+  WHEN 'F43' THEN 336
+  WHEN 'F42' THEN 337
+  WHEN 'E39' THEN 338
+  WHEN 'E38' THEN 339
+  WHEN 'G41' THEN 340
+  WHEN 'G42' THEN 341
+  WHEN 'H43' THEN 342
+  WHEN 'H42' THEN 343
+  WHEN 'J41' THEN 344
+  WHEN 'J42' THEN 345
+  WHEN 'A41' THEN 346
+  WHEN 'A42' THEN 347
+  WHEN 'B43' THEN 348
+  WHEN 'B42' THEN 349
+  WHEN 'C42' THEN 350
+  WHEN 'C41' THEN 351
+  WHEN 'E45' THEN 352
+  WHEN 'E44' THEN 353
+  WHEN 'F46' THEN 354
+  WHEN 'F45' THEN 355
+  WHEN 'G44' THEN 356
+  WHEN 'G45' THEN 357
+  WHEN 'G48' THEN 358
+  WHEN 'G47' THEN 359
+  WHEN 'F48' THEN 360
+  WHEN 'F49' THEN 361
+  WHEN 'E47' THEN 362
+  WHEN 'E48' THEN 363
+  WHEN 'D42' THEN 364
+  WHEN 'D43' THEN 365
+  WHEN 'C44' THEN 366
+  WHEN 'C45' THEN 367
+  WHEN 'D46' THEN 368
+  WHEN 'D45' THEN 369
+  WHEN 'K44' THEN 370
+  WHEN 'K43' THEN 371
+  WHEN 'J44' THEN 372
+  WHEN 'J45' THEN 373
+  WHEN 'H46' THEN 374
+  WHEN 'H45' THEN 375
+  WHEN 'A44' THEN 376
+  WHEN 'A45' THEN 377
+  WHEN 'B45' THEN 378
+  WHEN 'B46' THEN 379
+  WHEN 'C47' THEN 380
+  WHEN 'C48' THEN 381
+  WHEN 'F12' THEN 384
+  WHEN 'F13' THEN 385
+  WHEN 'C11' THEN 386
+  WHEN 'C10' THEN 387
+  WHEN 'A10' THEN 388
+  WHEN 'A11' THEN 389
+  WHEN 'G11' THEN 390
+  WHEN 'G10' THEN 391
+  WHEN 'D49' THEN 396
+  WHEN 'D48' THEN 397
+  WHEN 'E15' THEN 398
+  WHEN 'E14' THEN 399
+  WHEN 'E23' THEN 400
+  WHEN 'E22' THEN 401
+  WHEN 'C34' THEN 402
+  WHEN 'C35' THEN 403
+  WHEN 'K32' THEN 404
+  WHEN 'K33' THEN 405
+  WHEN 'A22' THEN 406
+  WHEN 'A23' THEN 407
+  WHEN 'J22' THEN 408
+  WHEN 'J23' THEN 409
+  WHEN 'C23' THEN 410
+  WHEN 'C22' THEN 411
+  WHEN 'G23' THEN 412
+  WHEN 'G22' THEN 413
+  WHEN 'B33' THEN 414
+  WHEN 'B32' THEN 415
+  WHEN 'G35' THEN 416
+  WHEN 'G34' THEN 417
+  WHEN 'B21' THEN 418
+  WHEN 'B20' THEN 419
+  WHEN 'K21' THEN 420
+  WHEN 'K20' THEN 421
+  WHEN 'D20' THEN 422
+  WHEN 'D21' THEN 423
+  WHEN 'H20' THEN 424
+  WHEN 'H21' THEN 425
+  WHEN 'B12' THEN 426
+  WHEN 'B13' THEN 427
+  WHEN 'K13' THEN 428
+  WHEN 'K12' THEN 429
+  WHEN 'D12' THEN 430
+  WHEN 'D13' THEN 431
+  WHEN 'H12' THEN 432
+  WHEN 'H13' THEN 433
+  WHEN 'F16' THEN 440
+  WHEN 'F17' THEN 441
+  WHEN 'F32' THEN 442
+  WHEN 'F33' THEN 443
+  WHEN 'F24' THEN 444
+  WHEN 'F25' THEN 445
+  WHEN 'F28' THEN 446
+  WHEN 'F29' THEN 447
+  WHEN 'D24' THEN 448
+  WHEN 'D25' THEN 449
+  WHEN 'H24' THEN 450
+  WHEN 'H25' THEN 451
+  WHEN 'B25' THEN 452
+  WHEN 'B24' THEN 453
+  WHEN 'K25' THEN 454
+  WHEN 'K24' THEN 455
+  WHEN 'C27' THEN 456
+  WHEN 'C26' THEN 457
+  WHEN 'G27' THEN 458
+  WHEN 'G26' THEN 459
+  WHEN 'A26' THEN 460
+  WHEN 'A27' THEN 461
+  WHEN 'J26' THEN 462
+  WHEN 'J27' THEN 463
+  WHEN 'D28' THEN 464
+  WHEN 'D29' THEN 465
+  WHEN 'H28' THEN 466
+  WHEN 'H29' THEN 467
+  WHEN 'B29' THEN 468
+  WHEN 'B28' THEN 469
+  WHEN 'K29' THEN 470
+  WHEN 'K28' THEN 471
+  WHEN 'C31' THEN 472
+  WHEN 'C30' THEN 473
+  WHEN 'G31' THEN 474
+  WHEN 'G30' THEN 475
+  WHEN 'A30' THEN 476
+  WHEN 'A31' THEN 477
+  WHEN 'J30' THEN 478
+  WHEN 'J31' THEN 479
+END WHERE connector_pin IN ('A10','A11','A14','A15','A18','A19','A22','A23','A26','A27','A30','A31','A34','A35','A38','A39','A41','A42','A44','A45','A47','A48','A50','A51','A53','A54','A55','A56','A57','A58','A59','A61','A62','A7','A8','B10','B12','B13','B20','B21','B24','B25','B28','B29','B32','B33','B36','B37','B42','B43','B45','B46','B51','B52','B54','B55','B56','B58','B59','B61','B62','B8','C10','C11','C14','C15','C18','C19','C22','C23','C26','C27','C30','C31','C34','C35','C38','C39','C4','C41','C42','C44','C45','C47','C48','C5','C50','C51','C53','C54','C55','C56','C57','C58','C59','C60','C61','C7','C8','D10','D12','D13','D16','D17','D20','D21','D24','D25','D28','D29','D32','D33','D42','D43','D45','D46','D48','D49','D5','D51','D52','D54','D55','D56','D59','D60','D61','D62','D8','E10','E11','E14','E15','E18','E19','E22','E23','E26','E27','E38','E39','E4','E41','E42','E44','E45','E47','E48','E5','E53','E54','E55','E56','E59','E6','E60','E61','E7','F10','F12','F13','F16','F17','F20','F21','F24','F25','F28','F29','F32','F33','F42','F43','F45','F46','F48','F49','F5','F51','F52','F53','F54','F55','F56','F58','F59','F6','F60','F61','F9','G10','G11','G14','G15','G18','G19','G22','G23','G26','G27','G30','G31','G34','G35','G38','G39','G4','G41','G42','G44','G45','G47','G48','G5','G50','G51','G53','G54','G55','G56','G58','G6','G7','G8','H10','H12','H13','H16','H17','H20','H21','H24','H25','H28','H29','H32','H33','H36','H37','H42','H43','H45','H46','H48','H49','H5','H51','H52','H53','H54','H55','H57','H58','H6','H60','H61','H62','H8','H9','J14','J15','J18','J19','J22','J23','J26','J27','J30','J31','J34','J35','J4','J41','J42','J44','J45','J47','J48','J5','J50','J51','J52','J53','J54','J55','J57','J58','J59','J6','J60','J61','J7','J9','K12','K13','K20','K21','K24','K25','K28','K29','K32','K33','K43','K44','K46','K47','K49','K5','K50','K51','K52','K53','K54','K56','K57','K58','K59','K6','K60','K61','K62','L10','L11','L14','L15','L18','L19','L4','L48','L49','L5','L50','L51','L56','L57','L6','L60','L61','L8','L9');
+
+UPDATE pins SET xlsm_row = CASE row_number
+  WHEN 9001 THEN 9
+  WHEN 9002 THEN 57
+  WHEN 9003 THEN 69
+  WHEN 9004 THEN 82
+  WHEN 9005 THEN 125
+  WHEN 9006 THEN 136
+  WHEN 9007 THEN 272
+  WHEN 9008 THEN 292
+  WHEN 9009 THEN 293
+  WHEN 9010 THEN 303
+  WHEN 9011 THEN 313
+  WHEN 9012 THEN 323
+  WHEN 9013 THEN 333
+  WHEN 9014 THEN 383
+  WHEN 9015 THEN 393
+  WHEN 9016 THEN 439
+  WHEN 9017 THEN 93
+  WHEN 9018 THEN 158
+  WHEN 9019 THEN 223
+  WHEN 9020 THEN 238
+END WHERE row_number >= 9001;
 
 COMMIT;

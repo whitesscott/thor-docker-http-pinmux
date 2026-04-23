@@ -1,0 +1,12 @@
+Would you change the from "Export DTS" to "Generate DTS"
+could you make the application look like this, or look at rows 6-9 in Jetson_Thor_Series_Modules_Pinmux_Template_v1.7.xlsm in this directory?
+
+```
+Thor CVM Connector		Package Ball Name	Verilog Ball Name		Pad Info		POR	Filled in by Customers												Customer Usage Description or Net Names	Devkit Usage	Comment
+				Wake	Pad Category	Pull Strength	Pin State	Customer Usage	Pin Direction	Req. Initial State	Wake Pin	"E_IO_OD
+Open-Drain Select"	"DRV_TYPE
+Disable = Normal
+Enable = High"	Int Pull Up Value (Ω)	Int Pull Down Value (Ω)	Ext Pull Up Value (Ω)	Ext Pull Down Value (Ω)	Req. Deep Sleep State	IO Block Voltage			
+Pin #	Signal Name	MPIO																				
+		VDDIO_A	SYS																1.8V		SYS	
+```

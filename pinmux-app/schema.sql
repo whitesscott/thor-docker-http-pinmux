@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS pins (
     id                   SERIAL PRIMARY KEY,
     row_number           INTEGER      NOT NULL,  -- original Excel row (debugging)
     sort_order           INTEGER      NOT NULL,
+    xlsm_row             INTEGER,                -- v1.7 XLSM visible row number (9–479); NULL for hidden pins
 
     -- Physical identity
     connector_pin        VARCHAR(20),             -- e.g. "L60"  (module connector ball)
@@ -91,7 +92,15 @@ CREATE TABLE IF NOT EXISTS pins (
 
     -- Whether this pin can be reconfigured by a customer
     -- (FALSE for oscillator/special-function pads outside the config range)
-    is_configurable      BOOLEAN      NOT NULL DEFAULT TRUE
+    is_configurable      BOOLEAN      NOT NULL DEFAULT TRUE,
+
+    -- Whether this row is hidden in the XLSM template (hidden rows are excluded from the UI)
+    -- 94 of the 269 configurable pins are hidden per the original XLSM
+    is_hidden            BOOLEAN      NOT NULL DEFAULT FALSE,
+
+    -- Whether the DRV_TYPE (LPDR low-power drive) field is applicable to this pad
+    -- Only 14 specific pads support this feature per the XLSM template
+    drv_type_applicable  BOOLEAN      NOT NULL DEFAULT FALSE
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS pins_ball_name_idx ON pins(ball_name);
@@ -151,6 +160,8 @@ CREATE TABLE IF NOT EXISTS pin_configs (
     ext_pull_up      VARCHAR(20),    -- external pull-up resistor value
     ext_pull_down    VARCHAR(20),
     deep_sleep_state VARCHAR(30),
+    net_name         VARCHAR(200),   -- Customer Usage Description or Net Names
+    ball_location    VARCHAR(50),    -- Ball Location / Pin # (customer-editable per BL)
 
     -- Pin electrical config (cols AH-AK; customer-editable, used by DTS generator)
     pupd             VARCHAR(20),    -- NORMAL / PULL_UP / PULL_DOWN

@@ -4,7 +4,7 @@ dist/
 *.pyc
 __pycache__/
 
-# Secrets (CRITICAL: Do not push these to GitHub)
+# Secrets (Do not push to GitHub)
 .env
 *.pem
 *.key
@@ -19,3 +19,4 @@ __pycache__/
 original_xlsm/
 vba/
 *.xlsm
+resume.txt

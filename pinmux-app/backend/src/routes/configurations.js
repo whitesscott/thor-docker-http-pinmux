@@ -35,9 +35,9 @@ router.get('/:id', async (req, res, next) => {
     const pinsRes = await db.query(`
       SELECT
         pc.*,
-        p.sort_order,   p.row_number,   p.is_configurable,
+        p.sort_order,   p.row_number,   p.xlsm_row,    p.is_configurable,
         p.connector_pin, p.signal_name,  p.ball_name,       p.verilog_name,
-        p.ball_location, p.mux_unused,   p.mux_gpio,
+        p.mux_unused,   p.mux_gpio,
         p.mux_sfio0,    p.mux_sfio1,    p.mux_sfio2,       p.mux_sfio3,
         p.allowed_dir_gpio, p.allowed_dir_sfio0, p.allowed_dir_sfio1,
         p.allowed_dir_sfio2, p.allowed_dir_sfio3,
@@ -46,12 +46,14 @@ router.get('/:id', async (req, res, next) => {
         p.gte,          p.dpd_control,  p.dpd_group,
         p.pad_category, p.pad_type,     p.pull_strength,   p.por_state,
         p.is_hidden,
-        p.io_block_voltage, p.net_name, p.devkit_usage, p.gpio_true_direction, p.comment,
+        p.drv_type_applicable,
+        p.io_block_voltage, COALESCE(pc.net_name, p.net_name) AS net_name, p.devkit_usage, p.gpio_true_direction, p.comment,
+        COALESCE(pc.ball_location, p.ball_location) AS ball_location,
         p.default_pupd, p.default_tristate, p.default_e_input, p.default_gpio_init,
         p.tmpl_customer_usage, p.tmpl_pin_direction
-      FROM pin_configs pc
-      JOIN pins p ON p.id = pc.pin_id
-      WHERE pc.config_id = $1
+      FROM pins p
+      LEFT JOIN pin_configs pc ON pc.pin_id = p.id AND pc.config_id = $1
+      WHERE (NOT p.is_configurable AND p.xlsm_row IS NOT NULL) OR pc.id IS NOT NULL
       ORDER BY p.sort_order
     `, [req.params.id]);
 
@@ -203,6 +205,7 @@ router.put('/:id/pins/:pinId', async (req, res, next) => {
     'wake_pin', 'lock', 'e_io_od', 'drv_type', 'e_lpbk',
     'e_18v', 'schmitt', 'e_hsrx18v',
     'int_pull_up', 'int_pull_down', 'ext_pull_up', 'ext_pull_down', 'deep_sleep_state',
+    'net_name', 'ball_location',
   ];
 
   const updates = {};
