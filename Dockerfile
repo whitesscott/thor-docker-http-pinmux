@@ -5,15 +5,18 @@
 # Services : PostgreSQL 16 · Node.js 20 API (port 3001) · nginx (port 80)
 #
 # Build:
-#   docker build --platform linux/arm64 -t pinmux:latest .
-#
+#   docker build --platform linux/arm64 --network=host -t pinmux:arm64 .
+# Or
+#   docker build --platform linux/amd64 --network=host -t pinmux:latest .
 # Run:
-#   docker run --platform linux/arm64 -p 8080:80 pinmux:latest
-#   open http://localhost:8080
+#   docker run --rm --runtime=nvidia --name pinmux \
+#      --ipc=host --cap-add=CAP_SYS_PTRACE --ulimit memlock=-1 --ulimit stack=67108864 \
+#      -p 8080:80 \
+#      -v "$HOME/.cache/pinmux-pgdata:/var/lib/postgresql" \
+#      whitesscott/pinmux:latest
 #
-# Data persists across restarts only if you mount a volume:
-#   docker run --platform linux/arm64 -p 8080:80 \
-#     -v pinmux-pgdata:/var/lib/postgresql pinmux:latest
+#   open  http://localhost:8080
+#
 # =============================================================================
 
 # -----------------------------------------------------------------------------
