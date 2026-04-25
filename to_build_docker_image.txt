@@ -22,13 +22,12 @@ Dockerfile — multi-stage, single container:
   Build and run:                                                                                                                                      
   # build    
                                                  
-docker build --platform linux/arm64 -t whitesscott/pinmux:latest .
-or
-docker build --no-cache --platform linux/arm64 -t whitesscott/pinmux:latest .
-
-
-
-docker push whitesscott/pinmux:latest
+# x86_64 / amd64 
+docker build --network=host -t whitesscott/pinmux:amd64 .
+# arm64 / aarch64
+docker build --network=host -t whitesscott/pinmux:arm64 .
+# or to rebuild.
+docker build --no-cache --network=host -t whitesscott/pinmux:latest .
 
 docker run --rm --runtime=nvidia --name pinmux \
   --ipc=host --cap-add=CAP_SYS_PTRACE --ulimit memlock=-1 --ulimit stack=67108864 \
@@ -36,5 +35,10 @@ docker run --rm --runtime=nvidia --name pinmux \
   -v "$HOME/.cache/pinmux-pgdata:/var/lib/postgresql" \
   whitesscott/pinmux:latest                                                                                                                          
 
-Then open http://localhost:8080
 
+Then browse to http://localhost:8080
+
+
+
+===============================
+docker push whitesscott/pinmux:latest
